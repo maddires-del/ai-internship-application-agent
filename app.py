@@ -9,28 +9,20 @@ st.write("An agentic AI assistant for Data Science and Generative AI internship 
 resume = st.text_area("Paste your resume here", height=220)
 job_description = st.text_area("Paste the job description here", height=220)
 
-action = st.selectbox(
-    "Choose what action the agent should take",
-    [
-        "Analyze Job Fit",
-        "Improve Resume Bullets",
-        "Write Recruiter Message",
-        "Generate Interview Prep",
-        "Create Application Checklist"
-    ]
+user_goal = st.text_input(
+    "What do you need help with?",
+    "I want help applying for this internship."
 )
 
 system_prompt = """
-You are an agentic AI career assistant for students applying to Data Science,
+You are an AI Internship Application Agent for students applying to Data Science,
 Machine Learning, and Generative AI internships.
-
-You can perform different actions depending on the user's selected goal.
 
 Rules:
 - Be honest and specific.
 - Do not invent experience.
-- Use only the resume, job description, and provided skill framework.
-- If information is missing, say what is missing.
+- Use only the resume, job description, and skill framework.
+- If information is missing, explain what is missing.
 - Give practical next steps.
 - Focus on internships and early-career candidates.
 """
@@ -50,7 +42,8 @@ Data Science and AI internship skill framework:
 - Pandas
 - NumPy
 - Scikit-learn
-- TensorFlow or PyTorch
+- TensorFlow
+- PyTorch
 - GitHub
 - Streamlit
 - Generative AI
@@ -60,12 +53,12 @@ Data Science and AI internship skill framework:
 - Problem Solving
 """
 
-def build_prompt(action, resume, job_description):
+def build_prompt(user_goal, resume, job_description):
     return f"""
 {system_prompt}
 
-Selected Agent Action:
-{action}
+User Goal:
+{user_goal}
 
 Grounding Skill Framework:
 {skill_framework}
@@ -76,44 +69,64 @@ Resume:
 Job Description:
 {job_description}
 
-Instructions:
-If the selected action is Analyze Job Fit:
-- Give match score out of 100.
-- Explain strongest matches.
-- Explain missing skills.
-- Recommend 3 improvement steps.
+Available Agent Tools:
 
-If the selected action is Improve Resume Bullets:
-- Rewrite 5 resume bullets for this job.
-- Do not invent experience.
-- Use stronger action verbs.
-- Keep bullets realistic for a student/intern.
+1. Analyze Job Fit
+   - Compare resume and job description
+   - Generate match score
+   - Identify missing skills
 
-If the selected action is Write Recruiter Message:
-- Write a short LinkedIn or email message to a recruiter.
-- Mention the role and relevant skills.
-- Keep it professional and simple.
+2. Improve Resume Bullets
+   - Rewrite resume bullets
+   - Use stronger action verbs
+   - Do not invent experience
 
-If the selected action is Generate Interview Prep:
-- Create 8 interview questions.
-- Include simple preparation tips.
-- Include technical and behavioral questions.
+3. Write Recruiter Message
+   - Create a recruiter outreach message
+   - Keep it professional and concise
 
-If the selected action is Create Application Checklist:
-- Create a checklist of steps before applying.
-- Include resume, skills, projects, GitHub, and interview preparation.
+4. Generate Interview Prep
+   - Generate interview questions
+   - Include preparation advice
 
-Return the answer in clear sections.
+5. Create Application Checklist
+   - Create a checklist before applying
+
+Your Task:
+
+Step 1:
+Decide which tool is most appropriate for the user's goal.
+
+Step 2:
+Explain why that tool was selected.
+
+Step 3:
+Execute the tool.
+
+Step 4:
+Provide the final result.
+
+Use the following format:
+
+Selected Tool:
+Reason:
+Output:
+Recommendations:
 """
-
+    
 if st.button("Run Agent"):
     if not resume or not job_description:
         st.warning("Please paste both resume and job description.")
     else:
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
         model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
-        prompt = build_prompt(action, resume, job_description)
+        prompt = build_prompt(
+            user_goal,
+            resume,
+            job_description
+        )
 
         with st.spinner("Agent is working..."):
             response = model.generate_content(prompt)
